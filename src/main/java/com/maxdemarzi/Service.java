@@ -11,10 +11,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
 
 @Path("/service")
 public class Service {
@@ -166,4 +164,66 @@ public class Service {
         return Response.ok().entity(objectMapper.writeValueAsString(results)).build();
     }
 
+    @GET
+    @Path("/locs2")
+    public Response locs2(@Context GraphDatabaseService db) throws IOException {
+
+        try (Transaction tx = db.beginTx()) {
+            // Figure out how many nodes we have
+            int maxNodeId = 1;
+            Result result = db.execute( "CYPHER runtime=compiled MATCH (n) RETURN max(id(n)) AS maxId" );
+            Map response = result.next();
+            if (response.get("maxId") != null) {
+                maxNodeId = ((Number) response.get("maxId")).intValue() + 1;
+            }
+
+            // Get all the LOCs once for all nodes
+            long locs[] = new long[maxNodeId];
+            ResourceIterator<Node> nodes =  db.getAllNodes().iterator();
+            while (nodes.hasNext()) {
+                Node node= nodes.next();
+                locs[(int)node.getId()] =  (long)node.getProperty("loc");
+            }
+
+            // Find all my 1st level calls
+            nodes =  db.getAllNodes().iterator();
+            HashMap<Long, Set<Long>> chain = new HashMap<>();
+            while (nodes.hasNext()) {
+                Node node = nodes.next();
+                Set<Long> calls = new HashSet<>();
+                for (Relationship rel : node.getRelationships(Direction.OUTGOING, RelationshipTypes.CALLS)) {
+                    calls.add(rel.getEndNode().getId());
+                }
+                chain.put(node.getId(), calls);
+            }
+
+            // For each node get the chain
+            nodes =  db.getAllNodes().iterator();
+            while (nodes.hasNext()) {
+                Node node = nodes.next();
+                Long loc = locs[(int)node.getId()];
+                Queue<Long> todo = new LinkedBlockingQueue<>();
+                Set<Long> calls = chain.get(node.getId());
+                todo.addAll(calls);
+                while (!todo.isEmpty()) {
+                    for (Long link : chain.get(todo.poll()) ){
+                        if (calls.add(link)) {
+                            todo.add(link);
+                        }
+                    }
+                }
+
+                for (Long call : calls) {
+                    loc += locs[call.intValue()];
+                }
+                node.setProperty("tree_loc2", loc);
+            }
+            tx.success();
+        }
+
+        Map<String, String> results = new HashMap<>();
+        results.put("locs2", "calculated");
+
+        return Response.ok().entity(objectMapper.writeValueAsString(results)).build();
+    }
 }

@@ -95,4 +95,16 @@ public class ServiceTest {
     private static final HashMap expected4 = new HashMap<String, Object>() {{
         put("overlap_loc", 315);
     }};
+
+
+    @Test
+    public void shouldRespondToLOCS2Request() {
+        HTTP.Response response = HTTP.GET(neo4j.httpURI().resolve("/v1/service/locs2").toString());
+        HashMap actual = response.content();
+        assertTrue(actual.equals(expected5));
+    }
+
+    private static final HashMap expected5 = new HashMap<String, Object>() {{
+        put("locs2", "calculated");
+    }};
 }

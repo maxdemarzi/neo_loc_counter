@@ -98,3 +98,13 @@ Instructions
         :GET /v1/service/overlap/p1/p11
 
         You should see "overlap: 315"
+
+11. Calculate the call tree loc for all Programs (optimized-ish?):
+
+            :GET /v1/service/locs2
+
+            You should see "locs2: calculated".
+
+12. Check the results with this Cypher query:
+
+            MATCH (n:Program) RETURN n.id, n.tree_loc, n.tree_loc2 LIMIT 25
