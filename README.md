@@ -5,12 +5,13 @@ Count lines of code in a call tree without duplicates
 
 Two API calls:
 
-1. Count (given a program, count the total LOC down the tree
+One: Count given a program, count the total LOC down the tree
 
-1b. Do this for all programs naively
+One (b): Do this for all programs naively
 
-1c. Do this for all programs optimally
-2. Overlap (given 2 programs, count the overlap LOCs)
+One (c): Do this for all programs optimally-ish
+
+Two: Overlap (given 2 programs, count the overlap LOCs)
 
 Prerequisites
 -------------
@@ -74,19 +75,19 @@ Instructions
 
         :GET /v1/service/loc/p1
 
-You should see "loc: 1055"
+        You should see "loc: 1055"
 
 7. Try a different program:
 
         :GET /v1/service/loc/p11
 
-You should see "loc: 651"
+        You should see "loc: 651"
 
 8. Calculate the call tree loc for all Programs (naively):
 
         :GET /v1/service/locs
 
-You should see "locs: calculated".
+        You should see "locs: calculated".
 
 9. Check the results with this Cypher query:
 
@@ -96,4 +97,4 @@ You should see "locs: calculated".
 
         :GET /v1/service/overlap/p1/p11
 
-You should see "overlap: 315"
+        You should see "overlap: 315"
