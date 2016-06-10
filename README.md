@@ -10,7 +10,6 @@ Two API calls:
 1b. Do this for all programs naively
 
 1c. Do this for all programs optimally
-
 2. Overlap (given 2 programs, count the overlap LOCs)
 
 Prerequisites
